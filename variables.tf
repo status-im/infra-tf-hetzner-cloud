@@ -29,12 +29,12 @@ variable "data_vol_size" {
   default     = 0
 }
 
-/* Use: `hcloud datacenter list` */
-variable "data_center" {
-  description = "Specific data center in which to deploy hosts."
+/* Use: `hcloud location list` */
+variable "location" {
+  description = "Location in which to deploy hosts."
   type        = string
   # Helsinki, Finland
-  default = "hel1-dc2"
+  default = "hel1"
 }
 
 /* Use: `hcloud image list` */

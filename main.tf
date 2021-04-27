@@ -1,6 +1,12 @@
 locals {
-  stage       = var.stage != "" ? var.stage : terraform.workspace
-  dc          = "${var.provider_name}-${var.data_center}"
+  stage = var.stage != "" ? var.stage : terraform.workspace
+
+  /* we're prepending "eu-" to the location to keep the same format as our
+   * other tf provider modules (aws, gcp, do ,...)
+   * all hetzner cloud data centers are in the EU */
+  dc = "${var.provider_name}-eu-${var.location}"
+
+  /* example: stable-large-01.he-eu-hel1.nimbus.default */
   host_suffix = "${local.dc}.${var.env}.${local.stage}"
 
   /* always add SSH, Tinc, Netdata, and Consul to allowed ports */
@@ -9,7 +15,7 @@ locals {
 
   /* pre-generated list of hostnames */
   hostnames = toset([for i in range(1, var.host_count + 1) :
-    "${var.name}-${format("%02d", i)}.${host_suffix}"
+    "${var.name}-${format("%02d", i)}.${local.host_suffix}"
   ])
 }
 
@@ -52,9 +58,29 @@ resource "hcloud_server" "host" {
   name         = each.key
   image        = var.image
   server_type  = var.server_type
-  datacenter   = var.data_center
+  location     = var.location
   ssh_keys     = var.ssh_keys
   firewall_ids = [hcloud_firewall.host.id]
+
+  /* bootstraping access for later Ansible use */
+  provisioner "ansible" {
+    plays {
+      playbook {
+        file_path = "${path.cwd}/ansible/bootstrap.yml"
+      }
+
+      hosts  = [self.ipv4_address]
+      groups = [var.group]
+
+      extra_vars = {
+        hostname         = self.name
+        ansible_ssh_user = var.ssh_user
+        data_center      = local.dc
+        stage            = local.stage
+        env              = var.env
+      }
+    }
+  }
 }
 
 resource "hcloud_floating_ip" "host" {
@@ -77,12 +103,39 @@ resource "hcloud_volume" "host" {
   // TODO: disk will be mounted with a random name at /mnt
   // for example "/mnt/HC_Volume_10863580"
   // need to update infra-role-bootstrap / volumes task
-  automount = true
-  format    = "ext4"
 
   /* lifecycle { */
   /*   prevent_destroy = true */
   /*   /1* We do this to avoid destrying a volume unnecesarily *1/ */
   /*   ignore_changes = [ name ] */
   /* } */
+}
+
+resource "cloudflare_record" "host" {
+  for_each  = local.hostnames
+  zone_id = var.cf_zone_id
+  name    = hcloud_server.host[each.key].name
+  value   = hcloud_floating_ip.host[each.key].ip_address
+  type    = "A"
+  ttl     = 3600
+}
+
+resource "ansible_host" "host" {
+  for_each           = local.hostnames
+  inventory_hostname = hcloud_server.host[each.key].name
+
+  groups = [var.group, local.dc]
+
+  vars = {
+    ansible_host = hcloud_floating_ip.host[each.key].ip_address
+
+    hostname = hcloud_server.host[each.key].name
+    region   = hcloud_server.host[each.key].location
+
+    dns_entry   = "${hcloud_server.host[each.key].name}.${var.domain}"
+    dns_domain  = var.domain
+    data_center = local.dc
+    stage       = local.stage
+    env         = var.env
+  }
 }
