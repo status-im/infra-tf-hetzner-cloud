@@ -74,10 +74,10 @@ resource "hcloud_server" "host" {
 
       extra_vars = {
         hostname         = self.name
-        ansible_ssh_user = var.ssh_user
         data_center      = local.dc
         stage            = local.stage
         env              = var.env
+        ansible_ssh_user = var.ssh_user
       }
     }
   }
@@ -95,14 +95,10 @@ resource "hcloud_floating_ip" "host" {
 
 /* Optional resource when data_vol_size is set */
 resource "hcloud_volume" "host" {
-  for_each  = local.hostnames
+  for_each  = toset([for h in local.hostnames : h if var.data_vol_size != 0])
   name      = "data-${replace(each.key, ".", "-")}"
   server_id = hcloud_server.host[each.key].id
   size      = var.data_vol_size
-
-  // TODO: disk will be mounted with a random name at /mnt
-  // for example "/mnt/HC_Volume_10863580"
-  // need to update infra-role-bootstrap / volumes task
 
   /* lifecycle { */
   /*   prevent_destroy = true */
@@ -112,12 +108,12 @@ resource "hcloud_volume" "host" {
 }
 
 resource "cloudflare_record" "host" {
-  for_each  = local.hostnames
-  zone_id = var.cf_zone_id
-  name    = hcloud_server.host[each.key].name
-  value   = hcloud_floating_ip.host[each.key].ip_address
-  type    = "A"
-  ttl     = 3600
+  for_each = local.hostnames
+  zone_id  = var.cf_zone_id
+  name     = hcloud_server.host[each.key].name
+  value    = hcloud_floating_ip.host[each.key].ip_address
+  type     = "A"
+  ttl      = 3600
 }
 
 resource "ansible_host" "host" {
