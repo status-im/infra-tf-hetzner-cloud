@@ -5,7 +5,7 @@ set -euo pipefail
 # https://docs.hetzner.com/cloud/floating-ips/faq/
 ip addr add ${floating_ip}/32 dev eth0
 
-# permanent config
+# permanent config for floating ip
 # https://docs.hetzner.com/cloud/floating-ips/persistent-configuration
 # will be applied after reboot
 cat > /etc/netplan/60-floating-ip.yaml <<EOT

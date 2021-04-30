@@ -62,10 +62,25 @@ resource "hcloud_server" "host" {
   ssh_keys     = var.ssh_keys
   firewall_ids = [hcloud_firewall.host.id]
 
-  # floating IPs are not assigned by default
+  /* floating IPs need to be assigned manually */
   user_data = templatefile("${path.module}/user-data/floating_ip.sh", {
     floating_ip = hcloud_floating_ip.host[each.key].ip_address
   })
+
+  /* wait for cloud-init (ensures instance is fully booted before moving on)
+   * if we don't wait the ansible provisioner will fail with connection errors
+   */
+  provisioner "remote-exec" {
+    connection {
+      user     = "root"
+      host     = self.ipv4_address
+    }
+    inline = [
+      "echo 'Waiting for cloud-init to complete...'",
+      "cloud-init status --wait > /dev/null",
+      "echo 'Completed cloud-init!'",
+    ]
+  }
 
   /* bootstraping access for later Ansible use */
   provisioner "ansible" {
