@@ -62,6 +62,11 @@ resource "hcloud_server" "host" {
   ssh_keys     = var.ssh_keys
   firewall_ids = [hcloud_firewall.host.id]
 
+  # floating IPs are not assigned by default
+  user_data = templatefile("${path.module}/user-data/floating_ip.sh", {
+    floating_ip = hcloud_floating_ip.host[each.key].ip_address
+  })
+
   /* bootstraping access for later Ansible use */
   provisioner "ansible" {
     plays {
@@ -84,13 +89,19 @@ resource "hcloud_server" "host" {
 }
 
 resource "hcloud_floating_ip" "host" {
-  for_each  = local.hostnames
-  server_id = hcloud_server.host[each.key].id
-  type      = "ipv4"
+  for_each      = local.hostnames
+  type          = "ipv4"
+  home_location = var.location
 
-  /* lifecycle { */
-  /*   prevent_destroy = true */
-  /* } */
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
+resource "hcloud_floating_ip_assignment" "host" {
+  for_each       = local.hostnames
+  floating_ip_id = hcloud_floating_ip.host[each.key].id
+  server_id      = hcloud_server.host[each.key].id
 }
 
 /* Optional resource when data_vol_size is set */
@@ -100,11 +111,11 @@ resource "hcloud_volume" "host" {
   server_id = hcloud_server.host[each.key].id
   size      = var.data_vol_size
 
-  /* lifecycle { */
-  /*   prevent_destroy = true */
-  /*   /1* We do this to avoid destrying a volume unnecesarily *1/ */
-  /*   ignore_changes = [ name ] */
-  /* } */
+  lifecycle {
+    prevent_destroy = true
+    /* We do this to avoid destrying a volume unnecesarily */
+    ignore_changes = [name]
+  }
 }
 
 resource "cloudflare_record" "host" {
