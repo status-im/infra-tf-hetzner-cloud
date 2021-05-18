@@ -11,7 +11,7 @@ locals {
 
   /* always add SSH, Tinc, Netdata, and Consul to allowed ports */
   open_tcp_ports = concat(["22", "655", "8000", "8301"], var.open_tcp_ports)
-  open_udp_ports = concat(["655", "8301"], var.open_udp_ports)
+  open_udp_ports = concat(["51820", "655", "8301"], var.open_udp_ports)
 
   /* pre-generated list of hostnames */
   hostnames = toset([for i in range(1, var.host_count + 1) :
