@@ -72,8 +72,8 @@ resource "hcloud_server" "host" {
    */
   provisioner "remote-exec" {
     connection {
-      user     = "root"
-      host     = self.ipv4_address
+      user = "root"
+      host = self.ipv4_address
     }
     inline = [
       "echo 'Waiting for cloud-init to complete...'",
