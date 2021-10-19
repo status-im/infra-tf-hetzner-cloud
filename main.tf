@@ -67,6 +67,11 @@ resource "hcloud_server" "host" {
     floating_ip = hcloud_floating_ip.host[each.key].ip_address
   })
 
+  /* Ignore changes in attributes like image */
+  lifecycle {
+    ignore_changes = [image, ssh_keys]
+  }
+
   /* wait for cloud-init (ensures instance is fully booted before moving on)
    * if we don't wait the ansible provisioner will fail with connection errors
    */
