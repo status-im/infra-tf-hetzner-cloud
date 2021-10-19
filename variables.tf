@@ -90,9 +90,7 @@ variable "ssh_keys" {
   type        = list(string)
 
   # get a list of all available keys: `hcloud ssh-key list`
-  default = [
-    "arthur",
-  ]
+  default     = ["jakub@status.im"]
 }
 
 /* FIREWALL --------------------------------------*/
