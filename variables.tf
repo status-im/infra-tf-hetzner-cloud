@@ -34,7 +34,7 @@ variable "location" {
   description = "Location in which to deploy hosts."
   type        = string
   # Helsinki, Finland
-  default = "hel1"
+  default     = "hel1"
 }
 
 /* Use: `hcloud image list` */
