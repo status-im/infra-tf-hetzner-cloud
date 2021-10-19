@@ -57,7 +57,7 @@ resource "hcloud_server" "host" {
   for_each     = local.hostnames
   name         = each.key
   image        = var.image
-  server_type  = var.server_type
+  server_type  = var.type
   location     = var.location
   ssh_keys     = var.ssh_keys
   firewall_ids = [hcloud_firewall.host.id]

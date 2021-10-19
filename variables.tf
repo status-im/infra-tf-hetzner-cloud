@@ -16,7 +16,7 @@ variable "host_count" {
 }
 
 /* Use: `hcloud server-type list` */
-variable "server_type" {
+variable "type" {
   description = "Type of machine to deploy."
   type        = string
   default     = "cx11"
