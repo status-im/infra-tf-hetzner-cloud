@@ -6,6 +6,9 @@ locals {
    * all hetzner cloud data centers are in the EU */
   dc = "${var.provider_name}-eu-${var.location}"
 
+  /* Got to add some default groups. */
+  groups = distinct([local.dc, "${var.env}.${local.stage}", var.group])
+
   /* example: stable-large-01.he-eu-hel1.nimbus.default */
   host_suffix = "${local.dc}.${var.env}.${local.stage}"
 
@@ -151,7 +154,7 @@ resource "ansible_host" "host" {
   for_each           = local.hostnames
   inventory_hostname = hcloud_server.host[each.key].name
 
-  groups = [var.group, local.dc]
+  groups = local.groups
 
   vars = {
     ansible_host = hcloud_floating_ip.host[each.key].ip_address
