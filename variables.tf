@@ -41,7 +41,7 @@ variable "location" {
 variable "image" {
   description = "OS image to use when deploying hosts."
   type        = string
-  default     = "ubuntu-20.04"
+  default     = "ubuntu-22.04"
 }
 
 variable "provider_name" {
