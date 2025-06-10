@@ -72,7 +72,7 @@ resource "hcloud_server" "host" {
 
   /* Ignore changes in attributes like image */
   lifecycle {
-    ignore_changes = [image, ssh_keys]
+    ignore_changes = [image, ssh_keys, user_data]
   }
 
   /* wait for cloud-init (ensures instance is fully booted before moving on)
