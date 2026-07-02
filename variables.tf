@@ -92,6 +92,10 @@ variable "ssh_keys" {
   # get a list of all available keys: `hcloud ssh-key list`
   default     = [
     "jakub@status.im",
+    "vedran@status.im",
+    "siddarth@status.im",
+    "marko@status.im",
+    "alexis@status.im"
   ]
 }
 
