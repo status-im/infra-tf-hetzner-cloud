@@ -16,7 +16,7 @@ module "hetzner-cloud" {
 
 * __Scaling__
   * `host_count` - Number of hosts to start in this region.
-  * `image` - OS image used to create host. (default: `ubuntu-20.04`)
+  * `image` - OS image used to create host. (default: `ubuntu-24.04`)
   * `type` - Type of host to create. (default: `cx11`)
   * `location` - Region in which the host will be created. (default: `hel1`)
   * `data_vol_size` - Size in GiB of an extra data volume to attach to the dropplet. (default: 0)
