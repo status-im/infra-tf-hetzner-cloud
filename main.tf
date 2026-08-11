@@ -164,6 +164,7 @@ resource "ansible_host" "host" {
 
     dns_entry   = "${hcloud_server.host[each.key].name}.${var.domain}"
     dns_domain  = var.domain
+    host_type   = var.type
     data_center = local.dc
     stage       = local.stage
     env         = var.env
