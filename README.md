@@ -20,6 +20,7 @@ module "hetzner-cloud" {
   * `type` - Type of host to create. (default: `cx11`)
   * `location` - Region in which the host will be created. (default: `hel1`)
   * `data_vol_size` - Size in GiB of an extra data volume to attach to the dropplet. (default: 0)
+  * `floating_ip` - Enable attachment of floating IP. (default: `false`)
 * __General__
   * `name` - Prefix of hostname before index. (default: `node`)
   * `group` - Name of Ansible group to add hosts to.

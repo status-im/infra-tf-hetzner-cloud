@@ -1,6 +1,11 @@
 locals {
-  public_ips   = [for h in hcloud_floating_ip.host : h.ip_address]
-  instance_ids = [for h in hcloud_server.host : h.id]
+  public_ips = [
+    for key, host in hcloud_server.host :
+      try(hcloud_floating_ip.host[key].ip_address, host.ipv4_address)
+  ]
+  instance_ids = [
+    for h in hcloud_server.host : h.id
+  ]
 }
 
 output "public_ips" {

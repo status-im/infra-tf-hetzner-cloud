@@ -34,6 +34,13 @@ variable "data_vol_size" {
   default     = 0
 }
 
+/* Cost is 3 EUR per month. */
+variable "floating_ip" {
+  description = "Whether instance received floating IP."
+  type        = bool
+  default     = false
+}
+
 /* Use: `hcloud location list` */
 variable "location" {
   description = "Location in which to deploy hosts."

@@ -66,9 +66,9 @@ resource "hcloud_server" "host" {
   firewall_ids = [hcloud_firewall.host.id]
 
   /* floating IPs need to be assigned manually */
-  user_data = templatefile("${path.module}/user-data/floating_ip.sh", {
+  user_data = var.floating_ip ? templatefile("${path.module}/user-data/floating_ip.sh", {
     floating_ip = hcloud_floating_ip.host[each.key].ip_address
-  })
+  }) : null
 
   /* Ignore changes in attributes like image */
   lifecycle {
@@ -112,7 +112,8 @@ resource "hcloud_server" "host" {
 }
 
 resource "hcloud_floating_ip" "host" {
-  for_each      = local.hostnames
+  for_each = var.floating_ip ? local.hostnames : []
+
   type          = "ipv4"
   home_location = var.location
 
@@ -122,7 +123,8 @@ resource "hcloud_floating_ip" "host" {
 }
 
 resource "hcloud_floating_ip_assignment" "host" {
-  for_each       = local.hostnames
+  for_each = var.floating_ip ? local.hostnames : []
+
   floating_ip_id = hcloud_floating_ip.host[each.key].id
   server_id      = hcloud_server.host[each.key].id
 }
@@ -145,7 +147,7 @@ resource "cloudflare_record" "host" {
   for_each = local.hostnames
   zone_id  = var.cf_zone_id
   name     = hcloud_server.host[each.key].name
-  value    = hcloud_floating_ip.host[each.key].ip_address
+  value    = try(hcloud_floating_ip.host[each.key].ip_address, hcloud_server.host[each.key].ipv4_address)
   type     = "A"
   ttl      = 3600
 }
@@ -157,7 +159,7 @@ resource "ansible_host" "host" {
   groups = local.groups
 
   vars = {
-    ansible_host = hcloud_floating_ip.host[each.key].ip_address
+    ansible_host = try(hcloud_floating_ip.host[each.key].ip_address, hcloud_server.host[each.key].ipv4_address)
 
     hostname = hcloud_server.host[each.key].name
     region   = hcloud_server.host[each.key].location
